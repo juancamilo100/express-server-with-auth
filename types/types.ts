@@ -1,0 +1,1 @@
+import { ObjectLiteral } from './generics';

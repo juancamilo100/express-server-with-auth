@@ -1,0 +1,673 @@
+swagger: '2.0'
+info:
+  version: 1.0.0
+  title: Time Tracker API
+  description: API for the Time Tracker App
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+basePath: /api
+tags:
+  - name: Auth
+    description: API for user access management
+  - name: Users
+    description: API for users in the system
+  - name: Customers
+    description: API for customers in the system
+  - name: Reports
+    description: API for reports in the system    
+securityDefinitions:
+  basicAuth:
+    type: basic
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      description: Login User
+      parameters:
+        - name: user
+          in: body
+          description: User to login
+          schema:
+            $ref: '#/definitions/UserLoginRequest'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: New portfolio is created
+          schema:
+            $ref: '#/definitions/TokenResponse'
+        '400':
+          description: Incomplete request
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+        '500':
+          description: Something went wrong
+  /auth/register:
+    post:
+      tags:
+        - Auth
+      description: Create new user in system
+      parameters:
+        - name: user
+          in: body
+          description: User that we want to create
+          schema:
+            $ref: '#/definitions/UserCreate'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: New user is created
+          schema:
+            $ref: '#/definitions/TokenResponse'
+        '400':
+          description: Incomplete request
+        '409':
+          description: User already exists
+        '500':
+          description: Something went wrong
+  /users:
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+    get:
+      tags:
+        - Users
+      summary: Get all users in system
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/UsersWithNoPasswordResponse'
+        '500':
+          description: Something went wrong
+  /users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: ID of user that we want to find
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+    get:
+      tags:
+        - Users
+      summary: Get user with given ID
+      responses:
+        '200':
+          description: User is found
+          schema:
+            $ref: '#/definitions/UserWithNoPasswordResponse'
+        '500':
+          description: Something went wrong
+    patch:
+      tags:
+        - Users
+      summary: Update user with given ID
+      parameters:
+        - name: user
+          in: body
+          description: User fields that we want to update
+          schema:
+            $ref: '#/definitions/UserUpdate'      
+      responses:
+        '200':
+          description: User has been updated
+        '500':
+          description: Something went wrong          
+    delete:
+      summary: Delete user with given ID
+      tags:
+        - Users
+      responses:
+        '200':
+          description: User has been deleted
+        '500':
+          description: Something went wrong
+  /users/{userId}/reports:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: ID of user that we want to find the reports for
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+    get:
+      tags:
+        - Users
+      summary: Get user reports
+      responses:
+        '200':
+          description: User repoerts were found
+          schema:
+            $ref: '#/definitions/ReportsResponse'
+        '500':
+          description: Something went wrong
+  /users/{userId}/password:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        description: ID of user that we want to change the password for
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+    patch:
+      tags:
+        - Users
+      summary: Update user password
+      responses:
+        '200':
+          description: Password was updated
+          schema:
+            $ref: '#/definitions/ReportsResponse'
+        '500':
+          description: Something went wrong
+  /customers:
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+    get:
+      tags:
+        - Customers
+      summary: Get all customers in system
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/CustomersResponse'
+        '500':
+          description: Something went wrong
+    post:
+      tags:
+        - Customers
+      summary: Create a new customer in the system  
+      parameters:
+        - name: customer
+          in: body
+          description: User that we want to create
+          schema:
+            $ref: '#/definitions/CustomerCreate'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: New user is created
+          schema:
+            $ref: '#/definitions/TokenResponse'
+        '400':
+          description: Incomplete request
+        '409':
+          description: User already exists
+        '500':
+          description: Something went wrong        
+  /customers/{customerId}:
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: ID of user that we want to find
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true    
+    get:
+      tags:
+        - Customers
+      summary: Get customer with given ID
+      responses:
+        '200':
+          description: Customer was found
+          schema:
+            $ref: '#/definitions/Customer'
+        '500':
+          description: Something went wrong
+    patch:
+      tags:
+        - Customers
+      summary: Update customer with given ID
+      parameters:
+        - name: customer
+          in: body
+          description: Customer fields that we want to update
+          schema:
+            $ref: '#/definitions/CustomerUpdate'      
+      responses:
+        '200':
+          description: Customer has been updated
+        '500':
+          description: Something went wrong          
+    delete:
+      summary: Delete customer with given ID
+      tags:
+        - Customers
+      responses:
+        '200':
+          description: Customer has been deleted
+        '500':
+          description: Something went wrong
+
+  /customers/{customerId}/invoice:
+    parameters:
+      - name: customerId
+        in: path
+        required: true
+        description: ID of user that we want to find
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+    post:
+      tags:
+        - Customers
+      summary: Generate customer invoice PDF and email it to customer's contact
+      parameters:
+        - name: Invoice Information
+          in: body
+          description: Invoice date range
+          schema: 
+            required:
+                - invoiceStartDate
+                - invoiceEndDate
+                - reportIds
+            properties:
+              invoiceStartDate:
+                type: string
+              invoiceEndDate:
+                type: string
+              reportIds:
+                type: array
+                items:
+                  type: number
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: New report has been created
+          schema:
+            type: object
+            properties:
+              invoiceId:
+                type: integer
+        '400':
+          description: Incomplete request
+        '500':
+          description: Something went wrong        
+
+  /reports:
+    parameters:
+      - name: Authorization
+        in: header
+        type: string
+        required: true
+    get:
+      tags:
+        - Reports
+      summary: Get all reports in system
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/ReportsResponse'
+        '500':
+          description: Something went wrong
+    post:
+      tags:
+        - Reports
+      summary: Create a report in the system  
+      parameters:
+        - name: report
+          in: body
+          description: Report that we want to create
+          schema:
+            $ref: '#/definitions/ReportCreate'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: New report has been created
+          schema:
+            $ref: '#/definitions/ReportResponse'
+        '400':
+          description: Incomplete request
+        '500':
+          description: Something went wrong        
+  /reports/{reportId}:
+    parameters:
+      - name: reportId
+        in: path
+        required: true
+        description: ID of report that we want
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true    
+    get:
+      tags:
+        - Reports
+      summary: Get report with given ID
+      responses:
+        '200':
+          description: Customer was found
+          schema:
+            $ref: '#/definitions/ReportResponse'
+        '500':
+          description: Something went wrong        
+    patch:
+      tags:
+        - Reports
+      summary: Update report with given ID
+      parameters:
+        - name: report
+          in: body
+          description: Report fields that we want to update
+          schema:
+            $ref: '#/definitions/ReportUpdate'      
+      responses:
+        '200':
+          description: Report has been updated
+        '500':
+          description: Something went wrong          
+    delete:
+      summary: Delete report with given ID
+      tags:
+        - Reports
+      responses:
+        '200':
+          description: Report has been deleted
+        '500':
+          description: Something went wrong
+  /reports/{reportId}/submit:
+    parameters:
+      - name: reportId
+        in: path
+        required: true
+        description: ID of report that we want to submit
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true    
+    post:
+      tags:
+        - Reports
+      summary: Submit the given report
+      responses:
+        '200':
+          description: Report was submitted
+        '400':
+          description: Bad request
+        '500':
+          description: Something went wrong                
+  /reports/{reportId}/tasks:
+    parameters:
+      - name: reportId
+        in: path
+        required: true
+        description: ID of report that we want to add the task to
+        type: string
+      - name: Authorization
+        in: header
+        type: string
+        required: true    
+    post:
+      tags:
+        - Reports
+      summary: Create a task for the given report
+      parameters:
+        - name: report
+          in: body
+          description: Task that we want to create
+          schema:
+            $ref: '#/definitions/TaskCreate'
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: New task has been created
+        '400':
+          description: Bad request
+        '500':
+          description: Something went wrong  
+  /reports/{reportId}/tasks/{taskId}:
+    parameters:
+      - name: reportId
+        in: path
+        required: true
+        description: ID of report that we want to operate on
+        type: string
+      - name: taskId
+        in: path
+        required: true
+        description: ID of task that we want to operate on
+        type: string        
+      - name: Authorization
+        in: header
+        type: string
+        required: true    
+    patch:
+      tags:
+        - Reports
+      summary: Update task with given ID inside report with given ID
+      parameters:
+        - name: task
+          in: body
+          description: Task fields that we want to update
+          schema:
+            $ref: '#/definitions/TaskUpdate'      
+      responses:
+        '200':
+          description: Task has been updated
+        '500':
+          description: Something went wrong          
+    delete:
+      summary: Delete task with given ID
+      tags:
+        - Reports
+      responses:
+        '200':
+          description: Task has been deleted
+        '500':
+          description: Something went wrong                           
+definitions:
+  UserCreate:
+    required:
+      - email
+      - password
+      - firstName
+      - lastName
+    properties:
+      firstName: 
+        type: string
+      lastName: 
+        type: string
+      email: 
+        type: string
+      password:
+        type: string
+  UserUpdate:
+    properties:
+      firstName: 
+        type: string
+      lastName: 
+        type: string
+      email: 
+        type: string
+  UserWithNoPasswordResponse:
+    properties:
+      id: 
+        type: integer
+      firstName: 
+        type: string
+      lastName: 
+        type: string
+      email: 
+        type: string
+  UsersWithNoPasswordResponse:
+    type: array
+    items:
+      $ref: '#/definitions/UserWithNoPasswordResponse'
+  UserLoginRequest:
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+        uniqueItems: true
+      password:
+        type: string
+  UserPasswordChangeRequest:
+    required:
+      - email
+      - password
+    properties:
+      oldPassword: 
+        type: string
+      newPassword: 
+        type: string
+  TokenResponse:
+    properties:
+      auth:
+        type: boolean
+      token:
+        type: string
+  ReportCreate:
+    required:
+      - customerId
+      - userId  
+      - tasks
+    properties:
+      customerId:
+        type: integer
+      userId:
+        type: integer
+      tasks:
+        type: array
+        items:
+          $ref: '#/definitions/TaskCreate'
+  ReportUpdate:
+    allOf:
+      - $ref: '#/definitions/ReportCreate'
+      - properties: 
+          tasks:
+            type: array
+            items:
+              $ref: '#/definitions/TaskUpdate'            
+  ReportResponse:
+    allOf:
+      - $ref: '#/definitions/ReportCreate'   
+      - properties: 
+          tasks:
+            type: array
+            items:
+              $ref: '#/definitions/TaskResponse'
+    properties:
+        id:
+          type: integer
+  TaskCreate:
+    required:
+        - hours
+        - datePerformed
+    properties:
+      hours:
+        type: integer
+      description:
+        type: string
+      datePerformed:
+        type: string     
+  TaskUpdate:
+    allOf:
+      - $ref: '#/definitions/TaskCreate'
+    properties: 
+      id:
+        type: integer        
+  TaskResponse: 
+    allOf:
+      - $ref: '#/definitions/TaskUpdate'   
+    properties: 
+      reportId:
+        type: integer
+  ReportsResponse:
+    type: array
+    items:
+      $ref: '#/definitions/ReportResponse'
+  CustomerCreate:
+    required:
+      - name
+      - emails
+      - addressLine1
+      - city
+      - state
+      - zipCode
+    properties:
+      name:
+        type: string
+      emails: 
+        type: array
+        items:
+          type: string
+      addressLine1:
+        type: string
+      addressLine2:
+        type: string
+      city:
+        type: string
+      state:
+        type: string
+      zipCode:
+        type: string
+  Customer:
+    properties: 
+      id: 
+        type: integer
+      name: 
+        type: string
+      address: 
+        type: string
+      city: 
+        type: string
+      state: 
+        type: string
+      email: 
+        type: string
+  CustomersResponse:
+    type: array
+    items:
+      $ref: '#/definitions/Customer'   
+  CustomerUpdate:
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      address:
+        type: string
+      city:
+        type: string
+      state:
+        type: string    
+
